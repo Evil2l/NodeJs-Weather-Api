@@ -1,7 +1,13 @@
 
+// forecast.io s/k: 230c8c428ba12bbb2eee4e64743d2507
+// forecat.io: https://api.darksky.net/forecast/230c8c428ba12bbb2eee4e64743d2507/37.8267,-122.4233
 
-const request = require('request');
+
 const yargs = require('yargs');
+
+const geocode = require('./geocode/geocode');
+const forecast = require('./weather/weather');
+
 const argv = yargs
     .options({
         a: {
@@ -15,20 +21,23 @@ const argv = yargs
     .alias('help', 'h')
     .argv;
 
-console.log(argv);
-let encodedAddress = encodeURIComponent(argv.a);
-console.log(encodedAddress);
-
-request({
-    url: `https://maps.googleapis.com/maps/api/geocode/json?address=+${encodedAddress}`,
-    json: true
-}, (err, response, body) => {
+geocode.geocodeAddress(argv.a, (err, result)=>{
     if(err){
-        console.error(`${err}`);
-    }else if(body.status === 'ZERO_RESULTS'){
-        console.error(`Unable to find that address`);
+        return console.log(`Error: ${err}`);
     }
-    else if(body.status === 'OK'){
-        console.log(`Address: ${body.results[0].geometry.location.lat}`);
-    }
+        console.log(JSON.stringify(result, undefined, 2));
+
+        forecast.getWeather(result.latitude, result.longitude, (err, weatherResult)=>{
+            if(err){
+                return console.log(`Error: ${err}`);
+            }
+            console.log(JSON.stringify(weatherResult, undefined, 2));
+        });
 });
+
+
+
+
+
+
+
